@@ -1,0 +1,134 @@
+#include <ESP8266WiFi.h>
+
+const char* ssid = "GalaxyS20";
+const char* password = "xvgp2223";
+
+int MRR = D0;
+int MRB = D1;
+int MLR = D2;
+int MLB = D3;
+
+WiFiServer server(80);
+
+void setup() {
+  Serial.begin(115200);
+  delay(10);
+  pinMode(MLR, OUTPUT);
+  pinMode(MLB, OUTPUT);
+  pinMode(MRR, OUTPUT);
+  pinMode(MRB, OUTPUT); 
+  digitalWrite(MLR, LOW);
+  digitalWrite(MLB, LOW);
+  digitalWrite(MRR, LOW);
+  digitalWrite(MRB, LOW);
+
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to "); 
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(50);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+
+  server.begin();
+  Serial.println("Server started");
+
+  Serial.print("Use this URL to connect: ");
+  Serial.print("http://");
+  Serial.print(WiFi.localIP());
+}
+
+void loop() {
+  WiFiClient client = server.available();
+  if (!client) {
+    return;
+  }
+
+  Serial.println("New client");
+
+  while (!client.available()) {
+    delay(0.5);
+  }
+
+  String request = client.readStringUntil('\r');
+  Serial.println(request);
+  client.flush();
+
+  if (request.indexOf("/FB") > 0) {
+    digitalWrite(MLR, HIGH);
+    digitalWrite(MLB, LOW);
+    digitalWrite(MRR, LOW);
+    digitalWrite(MRB, HIGH);
+    
+  }
+
+  if (request.indexOf("/RG") > 0) {
+    digitalWrite(MLR, HIGH);
+    digitalWrite(MLB, LOW);
+    digitalWrite(MRR, HIGH);
+    digitalWrite(MRB, HIGH);
+  }
+    if (request.indexOf("/LG") > 0) {
+    digitalWrite(MLR, HIGH);
+    digitalWrite(MLB, HIGH);
+    digitalWrite(MRR, LOW);
+    digitalWrite(MRB, HIGH);
+    
+  }
+
+  if (request.indexOf("/STP") > 0) {
+    digitalWrite(MLR, HIGH);
+    digitalWrite(MLB, HIGH);
+    digitalWrite(MRR, HIGH);
+    digitalWrite(MRB, HIGH);
+  }
+
+  if (request.indexOf("/RV") > 0) {
+    digitalWrite(MLR, LOW);
+    digitalWrite(MLB, HIGH);
+    digitalWrite(MRR, HIGH);
+    digitalWrite(MRB, LOW);
+  }
+
+  client.println("HTTP/1.1 200 OK"); 
+  client.println("Content-Type: text/html");
+  client.println("");
+  client.println("<!DOCTYPE HTML>");
+  client.println("<html>");
+  client.println("<head>");
+  client.println("<style>");
+  client.println("body {");
+  client.println("  background-image: url('https://images.unsplash.com/photo-1517994112540-009c47ea476b?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxleHBsb3JlLWZlZWR8MXx8fGVufDB8fHx8fA%3D%3D');");
+  client.println("  background-size: cover;");
+  client.println("}");
+  client.println("</style>");
+  client.println("</head>");
+  client.println("<body>");
+  client.println("<div style=\"height:100vh; width:100vw;\">");
+  client.println("<br></br>");
+  
+  client.println("<br><br>");
+  client.println("<marquee style=\"font-size:50px;  \"> Robot Car </marquee>");
+  client.println("<br></br>");
+  
+  
+  client.println("<a href=\"/FB\"><button style=\"background-color: blue; color: white; font-size: 50px; padding: 20px;\">Forward</button></a>");
+  client.println("<a href=\"/STP\"><button style=\"background-color: red; color: white; font-size: 50px; padding: 20px;\">Stop</button></a>");
+  client.println("<a href=\"/LG\"><button style=\"background-color: green; color: white; font-size: 50px; padding: 20px;\">Left direction</button></a>");
+  client.println("<a href=\"/RG\"><button style=\"background-color: orange; color: white; font-size: 50px; padding: 20px;\">Right direction</button></a>");
+  client.println("<a href=\"/RV\"><button style=\"background-color: purple; color: white; font-size: 50px; padding: 20px;\">Reverse</button></a>");
+
+  client.println("</div>");
+  client.println("</div>");
+  client.println("</body>");
+  client.println("</html>");
+  delay(1);
+  Serial.println("Client disconnected");
+  Serial.println("");
+}
