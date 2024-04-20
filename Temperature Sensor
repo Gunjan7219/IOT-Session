@@ -1,0 +1,27 @@
+int tempc;
+int tempf;
+int tempk;
+const int sensor=A0;
+float vin;
+void setup()
+{
+  pinMode(sensor,INPUT);
+  Serial.begin(9600);
+  delay(500);
+}
+void loop()
+{
+  vin=analogRead(sensor);
+  vin=(vin*330)/1023;
+  tempc=vin;
+  tempf=((9/5)*tempc)+32;
+  tempk=tempc+273.15;
+  Serial.print("In DegreeC=");
+  Serial.print(tempc);
+  Serial.print("In Fahren =");
+  Serial.print(tempf);
+  serial.print("In kelvin=");
+  Serial.print(tempk);
+  Serial.print("\n");
+  delay(1000);
+}
