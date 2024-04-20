@@ -1,0 +1,162 @@
+#include <ESP8266WiFi.h>
+
+const char* ssid = "GalaxyS20";
+const char* password = "xvgp2223";
+
+const int numLeds = 5;  // Number of LEDs
+int ledPins[numLeds] = {D0, D1, D2, D3, D4}; // Pins for the LEDs
+bool ledStates[numLeds] = {LOW}; // Initial state of LEDs
+
+WiFiServer server(80);
+
+void setup() {
+  Serial.begin(115200);
+  delay(10);
+
+  for (int i = 0; i < numLeds; i++) {
+    pinMode(ledPins[i], OUTPUT);
+    digitalWrite(ledPins[i], ledStates[i]);
+  }
+
+  Serial.println();
+  Serial.println("Connecting to WiFi network: ");
+  Serial.println(ssid);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+
+  server.begin();
+  Serial.println("Server started");
+
+  Serial.println("Use this URL to connect:");
+  Serial.print("http://");
+  Serial.println(WiFi.localIP());
+}
+
+void loop() {
+  WiFiClient client = server.available();
+  if (!client) {
+    return;
+  }
+
+  Serial.println("New client");
+  while (!client.available()) {
+    delay(1);
+  }
+
+  String request = client.readStringUntil('\r');
+  Serial.println(request);
+  client.flush();
+
+  // Check if the request is to turn on/off any LED
+  for (int i = 0; i < numLeds; i++) {
+    String ledOn = "/LED" + String(i) + "ON";
+    String ledOff = "/LED" + String(i) + "OFF";
+    
+    if (request.indexOf(ledOn) > 0) {
+      digitalWrite(ledPins[i], HIGH); // Turn LED on
+      ledStates[i] = HIGH; // Update LED state
+    }
+    if (request.indexOf(ledOff) > 0) {
+      digitalWrite(ledPins[i], LOW); // Turn LED off
+      ledStates[i] = LOW; // Update LED state
+    }
+  }
+
+  // Return the response
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-Type: text/html");
+  client.println("");
+
+client.println("<!DOCTYPE HTML>");
+client.println("<html>");
+client.println("<head>");
+client.println("<title>ESP8266 LED Control</title>");
+client.println("<style>");
+client.println("body {");
+client.println("  text-align: center;");
+client.println("  background-image: url('https://media.istockphoto.com/id/1363232669/photo/digital-transformation-iot-internet-of-things-digital-transformation-modern-technology.webp?b=1&s=170667a&w=0&k=20&c=hgli7sTOr_AuvjMyPSzHiH_MQ1HbtHJpL0dy5GWM8nE=');");
+client.println("  background-size: cover;");
+client.println("}");
+client.println("button {");
+client.println("  width: 150px;");
+client.println("  height: 50px;");
+client.println("  font-size: 20px;");
+client.println("  background-color: #4CAF50;");
+client.println("  color: white;");
+client.println("  border: 2px solid #008CBA;");
+client.println("  border-radius: 10px;");
+client.println("  margin: 5px;");
+client.println("  transition: background-color 0.3s;");
+client.println("}");
+client.println("button:hover {");
+client.println("  background-color: #45a049;");
+client.println("}");
+client.println("h1 {");
+client.println("  color: white;");
+client.println("  background-color: #333;");
+client.println("  padding: 20px;");
+client.println("}");
+client.println(".footer {");
+client.println("  position: fixed;");
+client.println("  bottom: 10px;");
+client.println("  left: 20px;");
+client.println("  color: white;");
+client.println("  font-size: 18px;");
+client.println("}");
+client.println(".led-box {");
+client.println("  border: 2px solid white;");
+client.println("  padding: 10px;");
+client.println("  display: inline-block;");
+client.println("}");
+client.println("</style>");
+client.println("</head>");
+client.println("<body>");
+client.println("<h1>Home Automation</h1>");
+
+client.println("<br><br>");
+
+// Start LED button box
+client.println("<div class='led-box'>");
+
+// Display buttons for each LED
+for (int i = 0; i < numLeds; i++) {
+  client.print("<a href=\"/LED" + String(i) + "ON\"><button>LED " + String(i) + " ON</button></a>");
+  client.print("<a href=\"/LED" + String(i) + "OFF\"><button>LED " + String(i) + " OFF</button></a><br>");
+}
+
+// End LED button box
+client.println("</div>");
+
+client.println("<div class='footer' style='background-color: #333; padding: 10px; text-align: center; position: fixed; bottom: 0; width: 100%;'>");
+client.println("Developed by:-<br>");
+client.println("<span style='display: inline-block; text-align: left;'>");
+client.println("&nbsp;&nbsp;&nbsp;&nbsp;Gunjan Mahajan<br>");
+client.println("&nbsp;&nbsp;&nbsp;&nbsp;Himanshu Nagose<br>");
+client.println("&nbsp;&nbsp;&nbsp;&nbsp;Vedang Modi<br>");
+client.println("&nbsp;&nbsp;&nbsp;&nbsp;Shreyas Patil<br>");
+client.println("&nbsp;&nbsp;&nbsp;&nbsp;Avinash Sawant<br>");
+client.println("</span>");
+client.println("</div>");
+
+
+
+
+client.println("</body>");
+client.println("</html>");
+
+
+
+
+
+  delay(1);
+  Serial.println("Client disconnected");
+  Serial.println("");
+}
